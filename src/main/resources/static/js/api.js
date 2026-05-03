@@ -3,7 +3,7 @@
  * Base URL points to Spring Boot backend
  */
 
-const API_BASE = 'https://taskmanager-production-b489.up.railway.app/';
+const API_BASE = 'https://taskmanager-production-b489.up.railway.app/api';
 
 // ─── Token Storage ──────────────────────────────────────────────────────────
 
@@ -72,7 +72,12 @@ const AuthAPI = {
             body: JSON.stringify({ email, password })
         });
         Auth.setToken(data.token);
-        Auth.setUser(data.user);
+        Auth.setUser({
+            id: data.userId,
+            fullName: data.fullName,
+            email: data.email,
+            role: data.globalRole
+        });
         return data;
     },
 
