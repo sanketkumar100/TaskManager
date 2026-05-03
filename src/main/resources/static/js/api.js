@@ -3,7 +3,7 @@
  * Base URL points to Spring Boot backend
  */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://taskmanager-production-b489.up.railway.app/';
 
 // ─── Token Storage ──────────────────────────────────────────────────────────
 
