@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projects — TaskManager</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        #projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+    </style>
+</head>
+<body data-page="projects">
+
+<div class="app-shell">
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Projects</div>
+                <div class="page-sub" id="proj-count">All projects</div>
+            </div>
+            <div class="flex gap-2">
+                <input id="search-projects" class="form-control" type="search" placeholder="Search projects…"
+                       style="width:220px;" oninput="filterProjects(this.value, document.getElementById('filter-status').value)" />
+                <select id="filter-status" class="form-control" style="width:130px;"
+                        onchange="filterProjects(document.getElementById('search-projects').value, this.value)">
+                    <option value="ALL">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="ON_HOLD">On Hold</option>
+                </select>
+                <button class="btn btn-primary" onclick="openModal('modal-add-project')">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    New Project
+                </button>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div id="projects-list">
+                <div style="color:var(--text-3);text-align:center;padding:48px;">Loading…</div>
+            </div>
+            <div id="projects-empty" style="display:none;text-align:center;padding:80px 0;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">📁</div>
+                <div style="font-family:var(--font-mono);font-weight:700;font-size:1rem;margin-bottom:8px;">No projects yet</div>
+                <div class="text-muted text-sm mb-4">Create your first project to get started.</div>
+                <button class="btn btn-primary" onclick="openModal('modal-add-project')">Create Project</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="modal-overlay" id="modal-add-project">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">New Project</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-add-project')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Project Name *</label>
+                <input id="add-proj-name" class="form-control" type="text" placeholder="e.g. Website Redesign" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="add-proj-description" class="form-control" rows="3" placeholder="What's this project about?"></textarea>
+            </div>
+            <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Status</label>
+                    <select id="add-proj-status" class="form-control">
+                        <option value="ACTIVE" selected>Active</option>
+                        <option value="ON_HOLD">On Hold</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Deadline</label>
+                    <input id="add-proj-deadline" class="form-control" type="date" />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-add-project')">Cancel</button>
+            <button class="btn btn-primary" id="btn-add-project">Create Project</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal-overlay" id="modal-edit-project">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Edit Project</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-project')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-proj-id" />
+            <div class="form-group">
+                <label class="form-label">Project Name *</label>
+                <input id="edit-proj-name" class="form-control" type="text" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="edit-proj-description" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Deadline</label>
+                <input id="edit-proj-deadline" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-edit-project')">Cancel</button>
+            <button class="btn btn-primary" id="btn-save-project">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Project Detail Modal -->
+<div class="modal-overlay" id="modal-project-detail">
+    <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-detail-title">Project</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-project-detail')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin:0 0 14px;">
+                <div class="form-label">Description</div>
+                <div id="detail-description" style="color:var(--text-2);font-size:.88rem;line-height:1.6;"></div>
+            </div>
+            <div class="grid gap-3" style="grid-template-columns:1fr 1fr 1fr;">
+                <div>
+                    <div class="form-label">Status</div>
+                    <span class="badge badge-blue" id="detail-status"></span>
+                </div>
+                <div>
+                    <div class="form-label">Deadline</div>
+                    <span class="font-mono text-sm" id="detail-deadline"></span>
+                </div>
+                <div>
+                    <div class="form-label">Tasks</div>
+                    <span class="font-mono text-sm text-accent" id="detail-tasks"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a id="detail-view-tasks" href="#" class="btn btn-secondary">View Tasks</a>
+            <button class="btn btn-ghost" onclick="closeModal('modal-project-detail')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/projects.js"></script>
+<script>
+    initSidebar();
+    loadProjects().then(() => {
+        document.getElementById('proj-count').textContent = `${allProjects.length} project${allProjects.length !== 1 ? 's' : ''}`;
+    });
+
+    // Add project
+    document.getElementById('btn-add-project').addEventListener('click', async () => {
+        const name        = document.getElementById('add-proj-name').value.trim();
+        const description = document.getElementById('add-proj-description').value.trim();
+        const status      = document.getElementById('add-proj-status').value;
+        const deadline    = document.getElementById('add-proj-deadline').value;
+
+        if (!name) { showToast('Name is required.', 'error'); return; }
+
+        try {
+            const p = await ProjectsAPI.create({ name, description, status, deadline: deadline || null });
+            allProjects.unshift(p);
+        } catch {
+            allProjects.unshift({ id: Date.now(), name, description, status, deadline: deadline || null, taskCount: 0, completionPercent: 0 });
+        }
+
+        closeModal('modal-add-project');
+        renderProjects(allProjects);
+        document.getElementById('add-proj-name').value = '';
+        document.getElementById('add-proj-description').value = '';
+        showToast('Project created!', 'success');
+        document.getElementById('proj-count').textContent = `${allProjects.length} projects`;
+    });
+
+    // Save edit
+    document.getElementById('btn-save-project').addEventListener('click', async () => {
+        const id          = document.getElementById('edit-proj-id').value;
+        const name        = document.getElementById('edit-proj-name').value.trim();
+        const description = document.getElementById('edit-proj-description').value.trim();
+        const deadline    = document.getElementById('edit-proj-deadline').value;
+
+        if (!name) { showToast('Name is required.', 'error'); return; }
+
+        try {
+            await ProjectsAPI.update(id, { name, description, deadline: deadline || null });
+        } catch {}
+
+        const idx = allProjects.findIndex(p => String(p.id) === String(id));
+        if (idx !== -1) allProjects[idx] = { ...allProjects[idx], name, description, deadline };
+        closeModal('modal-edit-project');
+        renderProjects(allProjects);
+        showToast('Project updated.', 'success');
+    });
+</script>
+</body>
+</html>

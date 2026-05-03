@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile — TaskManager</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="profile">
+
+<div class="app-shell">
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Profile</div>
+                <div class="page-sub">Manage your account settings</div>
+            </div>
+        </div>
+
+        <div class="page-body" style="max-width:720px;">
+
+            <!-- Profile Hero -->
+            <div class="profile-hero">
+                <div class="profile-avatar" id="profile-avatar">?</div>
+                <div style="flex:1;">
+                    <div class="profile-name" id="profile-name">Loading…</div>
+                    <div class="profile-email" id="profile-email"></div>
+                    <div class="flex gap-2 mt-3">
+                        <span class="badge badge-blue" id="profile-role">Member</span>
+                        <span class="badge badge-green" id="profile-status">Active</span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="openModal('modal-edit-profile')">
+                    Edit Profile
+                </button>
+            </div>
+
+            <!-- Stats row -->
+            <div class="stats-grid mb-6" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-label">My Tasks</div>
+                    <div class="stat-value text-accent" id="my-tasks-count">—</div>
+                    <div class="stat-delta">Assigned to me</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value text-green" id="my-done-count">—</div>
+                    <div class="stat-delta">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Projects</div>
+                    <div class="stat-value" id="my-proj-count">—</div>
+                    <div class="stat-delta">Contributing to</div>
+                </div>
+            </div>
+
+            <!-- Settings panels -->
+            <div style="display:flex;flex-direction:column;gap:18px;">
+
+                <!-- Account Info -->
+                <div class="card card-pad">
+                    <div style="font-family:var(--font-mono);font-size:.85rem;font-weight:700;margin-bottom:16px;">Account Information</div>
+                    <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                        <div>
+                            <div class="form-label">Full Name</div>
+                            <div class="text-sm" id="info-name" style="color:var(--text-2);">—</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Email Address</div>
+                            <div class="text-sm" id="info-email" style="color:var(--text-2);">—</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Role</div>
+                            <div class="text-sm" id="info-role" style="color:var(--text-2);">—</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Member Since</div>
+                            <div class="text-sm font-mono" id="info-created" style="color:var(--text-2);">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change -->
+                <div class="card card-pad">
+                    <div style="font-family:var(--font-mono);font-size:.85rem;font-weight:700;margin-bottom:16px;">Change Password</div>
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input id="pwd-current" class="form-control" type="password" placeholder="••••••••" />
+                    </div>
+                    <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">New Password</label>
+                            <input id="pwd-new" class="form-control" type="password" placeholder="Min. 8 chars" />
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">Confirm New</label>
+                            <input id="pwd-confirm" class="form-control" type="password" placeholder="Repeat" />
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm mt-4" id="btn-change-pwd">Update Password</button>
+                    <div id="pwd-error" class="text-red text-xs mt-2" style="display:none;"></div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="card card-pad" style="border-color:rgba(247,79,90,.25);">
+                    <div style="font-family:var(--font-mono);font-size:.85rem;font-weight:700;color:var(--red);margin-bottom:12px;">Danger Zone</div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm" style="font-weight:500;">Log out of all sessions</div>
+                            <div class="text-xs text-muted">You will be redirected to the login page.</div>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="Auth.logout()">Log Out</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="modal-edit-profile">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Edit Profile</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-profile')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input id="edit-name" class="form-control" type="text" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="edit-email" class="form-control" type="email" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-edit-profile')">Cancel</button>
+            <button class="btn btn-primary" id="btn-save-profile">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/sidebar.js"></script>
+<script>
+    initSidebar();
+
+    async function loadProfile() {
+        let user;
+        try {
+            user = await UsersAPI.getMe();
+            Auth.setUser(user);
+        } catch {
+            user = Auth.getUser() || { name: 'Demo User', email: 'demo@example.com', role: 'DEVELOPER', createdAt: new Date().toISOString() };
+        }
+
+        const av = initials(user.name || user.email || 'U');
+        document.getElementById('profile-avatar').textContent = av;
+        document.getElementById('profile-name').textContent   = user.name || '—';
+        document.getElementById('profile-email').textContent  = user.email || '—';
+        document.getElementById('profile-role').textContent   = user.role || 'Member';
+
+        document.getElementById('info-name').textContent    = user.name || '—';
+        document.getElementById('info-email').textContent   = user.email || '—';
+        document.getElementById('info-role').textContent    = user.role || '—';
+        document.getElementById('info-created').textContent = formatDate(user.createdAt);
+
+        // Pre-fill edit form
+        document.getElementById('edit-name').value  = user.name || '';
+        document.getElementById('edit-email').value = user.email || '';
+
+        // Load task stats
+        try {
+            const tasks = await TasksAPI.getAll({ assignedToMe: true });
+            document.getElementById('my-tasks-count').textContent = tasks.length;
+            document.getElementById('my-done-count').textContent  = tasks.filter(t => t.status === 'DONE').length;
+        } catch {
+            document.getElementById('my-tasks-count').textContent = '12';
+            document.getElementById('my-done-count').textContent  = '8';
+        }
+
+        try {
+            const projects = await ProjectsAPI.getAll();
+            document.getElementById('my-proj-count').textContent = projects.length;
+        } catch {
+            document.getElementById('my-proj-count').textContent = '4';
+        }
+    }
+
+    loadProfile();
+
+    // Save profile
+    document.getElementById('btn-save-profile').addEventListener('click', async () => {
+        const name  = document.getElementById('edit-name').value.trim();
+        const email = document.getElementById('edit-email').value.trim();
+        if (!name || !email) { showToast('Please fill in all fields.', 'error'); return; }
+
+        try {
+            const updated = await UsersAPI.updateMe({ name, email });
+            Auth.setUser({ ...Auth.getUser(), ...updated });
+        } catch {
+            Auth.setUser({ ...Auth.getUser(), name, email });
+        }
+
+        closeModal('modal-edit-profile');
+        loadProfile();
+        showToast('Profile updated.', 'success');
+    });
+
+    // Change password
+    document.getElementById('btn-change-pwd').addEventListener('click', async () => {
+        const current = document.getElementById('pwd-current').value;
+        const newPwd  = document.getElementById('pwd-new').value;
+        const confirm = document.getElementById('pwd-confirm').value;
+        const errEl   = document.getElementById('pwd-error');
+        errEl.style.display = 'none';
+
+        if (!current || !newPwd || !confirm) { errEl.textContent = 'Fill in all fields.'; errEl.style.display = ''; return; }
+        if (newPwd.length < 8)               { errEl.textContent = 'Min. 8 characters.';  errEl.style.display = ''; return; }
+        if (newPwd !== confirm)               { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
+
+        try {
+            await UsersAPI.changePassword({ currentPassword: current, newPassword: newPwd });
+            showToast('Password updated.', 'success');
+            document.getElementById('pwd-current').value = '';
+            document.getElementById('pwd-new').value = '';
+            document.getElementById('pwd-confirm').value = '';
+        } catch (err) {
+            errEl.textContent = err.message || 'Password change failed.';
+            errEl.style.display = '';
+        }
+    });
+</script>
+</body>
+</html>

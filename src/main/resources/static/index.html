@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskManager — Sign In</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .auth-glow {
+            position: absolute;
+            width: 480px; height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
+            top: -120px; right: -120px;
+            pointer-events: none;
+        }
+        .auth-glow-2 {
+            position: absolute;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124,90,247,.1) 0%, transparent 70%);
+            bottom: -80px; left: -80px;
+            pointer-events: none;
+        }
+        .divider-form { display: none; }
+        .divider-form.active { display: block; }
+    </style>
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-bg-grid"></div>
+    <div class="auth-glow"></div>
+    <div class="auth-glow-2"></div>
+
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="sidebar-logo-icon">TM</div>
+            <span class="sidebar-logo-text">TaskManager</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+            <div class="auth-tab active" data-tab="login">Sign In</div>
+            <div class="auth-tab" data-tab="signup">Sign Up</div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <div class="auth-title">Welcome back</div>
+            <div class="auth-sub">Sign in to your workspace</div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="login-email" class="form-control" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input id="login-password" class="form-control" type="password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+
+            <div class="flex justify-between items-center mb-4" style="font-size:.8rem;">
+                <label class="flex items-center gap-2" style="cursor:pointer;color:var(--text-2);">
+                    <input type="checkbox" id="remember-me" style="accent-color:var(--accent);" />
+                    Remember me
+                </label>
+                <span class="link" style="font-size:.8rem;">Forgot password?</span>
+            </div>
+
+            <button id="login-btn" class="btn btn-primary w-full" style="justify-content:center;padding:10px;">
+                Sign In
+            </button>
+
+            <div id="login-error" class="text-red text-sm mt-3" style="display:none;text-align:center;"></div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" style="display:none;">
+            <div class="auth-title">Create account</div>
+            <div class="auth-sub">Join your team on TaskManager</div>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input id="signup-name" class="form-control" type="text" placeholder="Jane Smith" autocomplete="name" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="signup-email" class="form-control" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input id="signup-password" class="form-control" type="password" placeholder="Min. 8 characters" autocomplete="new-password" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input id="signup-confirm" class="form-control" type="password" placeholder="Repeat password" autocomplete="new-password" />
+            </div>
+
+            <button id="signup-btn" class="btn btn-primary w-full" style="justify-content:center;padding:10px;">
+                Create Account
+            </button>
+
+            <div id="signup-error" class="text-red text-sm mt-3" style="display:none;text-align:center;"></div>
+        </div>
+
+        <div class="auth-footer-text" id="auth-switch-text">
+            Don't have an account? <span class="link" id="auth-switch">Sign up</span>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) window.location.href = 'pages/dashboard.html';
+
+    // Tab switching
+    let activeTab = 'login';
+
+    function setTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        document.getElementById('login-form').style.display  = tab === 'login'  ? '' : 'none';
+        document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
+        document.getElementById('auth-switch-text').innerHTML = tab === 'login'
+            ? 'Don\'t have an account? <span class="link" id="auth-switch">Sign up</span>'
+            : 'Already have an account? <span class="link" id="auth-switch">Sign in</span>';
+        document.getElementById('auth-switch').addEventListener('click', () => setTab(tab === 'login' ? 'signup' : 'login'));
+    }
+
+    document.querySelectorAll('.auth-tab').forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+    document.getElementById('auth-switch').addEventListener('click', () => setTab('signup'));
+
+    // ─── Login ───────────────────────────────────
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const btn   = document.getElementById('login-btn');
+        const errEl = document.getElementById('login-error');
+        const email    = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        errEl.style.display = 'none';
+        if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = ''; return; }
+
+        btn.textContent = 'Signing in…';
+        btn.disabled = true;
+
+        try {
+            await AuthAPI.login(email, password);
+            showToast('Welcome back!', 'success');
+            setTimeout(() => window.location.href = 'pages/dashboard.html', 600);
+        } catch (err) {
+            errEl.textContent = err.message || 'Login failed. Check your credentials.';
+            errEl.style.display = '';
+            btn.textContent = 'Sign In';
+            btn.disabled = false;
+        }
+    });
+
+    // Enter key on login
+    ['login-email','login-password'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+    });
+
+    // ─── Sign Up ─────────────────────────────────
+    document.getElementById('signup-btn').addEventListener('click', async () => {
+        const btn   = document.getElementById('signup-btn');
+        const errEl = document.getElementById('signup-error');
+        const name     = document.getElementById('signup-name').value.trim();
+        const email    = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirm  = document.getElementById('signup-confirm').value;
+
+        errEl.style.display = 'none';
+        if (!name || !email || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = ''; return; }
+        if (password.length < 8)           { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = ''; return; }
+        if (password !== confirm)           { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
+
+        btn.textContent = 'Creating account…';
+        btn.disabled = true;
+
+        try {
+            await AuthAPI.register(name, email, password);
+            showToast('Account created! Welcome!', 'success');
+            setTimeout(() => window.location.href = 'pages/dashboard.html', 600);
+        } catch (err) {
+            errEl.textContent = err.message || 'Registration failed. Try again.';
+            errEl.style.display = '';
+            btn.textContent = 'Create Account';
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

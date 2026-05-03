@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — TaskManager</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="dashboard">
+
+<div class="app-shell">
+    <!-- Sidebar injected by sidebar.js -->
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Dashboard</div>
+                <div class="page-sub">Welcome back — here's your overview</div>
+            </div>
+            <div class="flex gap-2">
+                <a href="/pages/projects.html" class="btn btn-secondary btn-sm">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    New Project
+                </a>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-quick-task')">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Task
+                </button>
+            </div>
+        </div>
+
+        <div class="page-body">
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Projects</div>
+                    <div class="stat-value text-accent" id="stat-projects">—</div>
+                    <div class="stat-delta">Active this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Tasks</div>
+                    <div class="stat-value" id="stat-tasks">—</div>
+                    <div class="stat-delta up">↑ 8 this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value text-green" id="stat-done">—</div>
+                    <div class="stat-delta up">↑ 12% vs last week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value text-red" id="stat-overdue">—</div>
+                    <div class="stat-delta down">Needs attention</div>
+                </div>
+            </div>
+
+            <!-- Two-column layout -->
+            <div class="grid" style="grid-template-columns: 1fr 380px; gap: 24px; align-items: start;">
+
+                <!-- Recent Tasks -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div style="font-family:var(--font-mono);font-size:.88rem;font-weight:700;">Recent Tasks</div>
+                        <a href="/pages/tasks.html" class="btn btn-ghost btn-sm text-accent">View all →</a>
+                    </div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Project</th>
+                                    <th>Status</th>
+                                    <th>Due</th>
+                                    <th>Assignee</th>
+                                </tr>
+                                </thead>
+                                <tbody id="recent-tasks-body">
+                                <tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-3);">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Projects -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div style="font-family:var(--font-mono);font-size:.88rem;font-weight:700;">Projects</div>
+                        <a href="/pages/projects.html" class="btn btn-ghost btn-sm text-accent">View all →</a>
+                    </div>
+                    <div id="projects-grid" style="display:flex;flex-direction:column;gap:14px;">
+                        <div style="color:var(--text-3);padding:24px;text-align:center;">Loading…</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Task Modal -->
+<div class="modal-overlay" id="modal-quick-task">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Quick Add Task</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-quick-task')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Task Title *</label>
+                <input id="qt-title" class="form-control" type="text" placeholder="What needs to be done?" />
+            </div>
+            <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Priority</label>
+                    <select id="qt-priority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Due Date</label>
+                    <input id="qt-due" class="form-control" type="date" />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-quick-task')">Cancel</button>
+            <button class="btn btn-primary" id="qt-submit">Create Task</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/dashboard.js"></script>
+<script>
+    initSidebar();
+    loadDashboard();
+
+    document.getElementById('qt-submit').addEventListener('click', async () => {
+        const title    = document.getElementById('qt-title').value.trim();
+        const priority = document.getElementById('qt-priority').value;
+        const dueDate  = document.getElementById('qt-due').value;
+        if (!title) { showToast('Title is required.', 'error'); return; }
+        try {
+            await TasksAPI.create({ title, priority, dueDate: dueDate || null, status: 'TODO' });
+            showToast('Task created!', 'success');
+        } catch {
+            showToast('Task added (demo).', 'info');
+        }
+        closeModal('modal-quick-task');
+        document.getElementById('qt-title').value = '';
+        loadDashboard();
+    });
+</script>
+</body>
+</html>

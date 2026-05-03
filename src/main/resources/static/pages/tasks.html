@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks — TaskManager</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .view-btn {
+            padding: 6px 12px;
+            border-radius: var(--r);
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--text-3);
+            cursor: pointer;
+            transition: all var(--t);
+            background: none;
+            border: 1px solid transparent;
+        }
+        .view-btn.active {
+            background: var(--surface-2);
+            color: var(--text);
+            border-color: var(--border-2);
+        }
+        #list-wrap { display: none; }
+    </style>
+</head>
+<body data-page="tasks">
+
+<div class="app-shell">
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Tasks</div>
+                <div class="page-sub" id="task-total-count">Loading…</div>
+            </div>
+            <div class="flex gap-2 items-center flex-wrap">
+                <input id="search-tasks" class="form-control" type="search" placeholder="Search…" style="width:180px;"
+                       oninput="filterTasks(this.value, document.getElementById('filter-task-status').value, document.getElementById('filter-task-priority').value)" />
+
+                <select id="filter-task-status" class="form-control" style="width:130px;"
+                        onchange="filterTasks(document.getElementById('search-tasks').value, this.value, document.getElementById('filter-task-priority').value)">
+                    <option value="ALL">All Status</option>
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+
+                <select id="filter-task-priority" class="form-control" style="width:120px;"
+                        onchange="filterTasks(document.getElementById('search-tasks').value, document.getElementById('filter-task-status').value, this.value)">
+                    <option value="ALL">All Priority</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                </select>
+
+                <!-- View toggle -->
+                <div class="flex gap-1" style="background:var(--bg-3);padding:3px;border-radius:var(--r);">
+                    <button class="view-btn active" data-view="kanban" onclick="switchView('kanban')">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>
+                        Kanban
+                    </button>
+                    <button class="view-btn" data-view="list" onclick="switchView('list')">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                        List
+                    </button>
+                </div>
+
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-task')">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    New Task
+                </button>
+            </div>
+        </div>
+
+        <div class="page-body" style="overflow:auto;">
+            <!-- Kanban Board -->
+            <div id="kanban-board" class="kanban-board">
+                <div style="color:var(--text-3);padding:48px;text-align:center;">Loading…</div>
+            </div>
+
+            <!-- List View -->
+            <div id="list-wrap">
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Project</th>
+                                <th>Status</th>
+                                <th>Change Status</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Assignee</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tasks-tbody">
+                            <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-3);">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="modal-add-task">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">New Task</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-add-task')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input id="task-title" class="form-control" type="text" placeholder="What needs to be done?" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="task-description" class="form-control" rows="2" placeholder="Optional details…"></textarea>
+            </div>
+            <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Status</label>
+                    <select id="task-status" class="form-control">
+                        <option value="TODO" selected>To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="DONE">Done</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Priority</label>
+                    <select id="task-priority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label">Due Date</label>
+                <input id="task-due" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-add-task')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitAddTask()">Create Task</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal-overlay" id="modal-edit-task">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Edit Task</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-task')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-task-id" />
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input id="edit-task-title" class="form-control" type="text" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="edit-task-description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="grid gap-3" style="grid-template-columns:1fr 1fr;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Status</label>
+                    <select id="edit-task-status" class="form-control">
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="DONE">Done</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Priority</label>
+                    <select id="edit-task-priority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label">Due Date</label>
+                <input id="edit-task-due" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-edit-task')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEditTask()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="modal-task-detail">
+    <div class="modal" style="max-width:500px;">
+        <div class="modal-header">
+            <div class="modal-title" id="detail-task-title">Task</div>
+            <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-task-detail')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="flex gap-2 mb-4" id="detail-task-status"></div>
+            <div class="grid gap-3 mb-4" style="grid-template-columns:1fr 1fr 1fr;">
+                <div>
+                    <div class="form-label">Priority</div>
+                    <div id="detail-task-priority"></div>
+                </div>
+                <div>
+                    <div class="form-label">Due Date</div>
+                    <div class="font-mono text-sm" id="detail-task-due"></div>
+                </div>
+                <div>
+                    <div class="form-label">Project</div>
+                    <div class="text-sm text-2" id="detail-task-project"></div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <div class="form-label">Assignee</div>
+                <div class="text-sm text-2" id="detail-task-assignee"></div>
+            </div>
+            <div>
+                <div class="form-label">Description</div>
+                <div class="text-sm text-2" style="line-height:1.6;" id="detail-task-desc"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger btn-sm" id="btn-delete-task">Delete</button>
+            <button class="btn btn-secondary" id="btn-edit-task">Edit</button>
+            <button class="btn btn-ghost" onclick="closeModal('modal-task-detail')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/tasks.js"></script>
+<script>
+    initSidebar();
+    loadTasks();
+</script>
+</body>
+</html>
