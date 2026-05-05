@@ -197,6 +197,22 @@ function initials(name = '') {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
+
+function esc(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function (m) {
+        return ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[m];
+    });
+}
+
+window.esc = esc;
+
 // ─── Exports (also available globally) ─────────────────────────────────────
 
 window.Auth         = Auth;

@@ -2,6 +2,17 @@
  * tasks.js — Tasks page logic (Kanban + List views)
  */
 
+function esc(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[m]);
+}
+
 let allTasks = [];
 let currentView = 'kanban'; // 'kanban' | 'list'
 
